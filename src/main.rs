@@ -21,7 +21,10 @@ struct GPUStats {
     throttling: String,
     fan: String,
     display: String,
-    processes: String,
+
+    #[tabled(skip)]
+    compute_process_pids: Vec<u32>,
+    processes: String, // same as above but in a diasplayable format
 }
 
 impl GPUStats {
@@ -91,6 +94,10 @@ impl GPUStats {
         };
 
         let compute_processes = device.running_compute_processes().unwrap();
+        let compute_process_pids = compute_processes
+            .iter()
+            .map(|process| process.pid)
+            .collect::<Vec<u32>>();
         let processes = compute_processes
             .iter()
             .map(|process| process.pid.clone().to_string())
@@ -110,6 +117,8 @@ impl GPUStats {
             throttling,
             fan,
             display,
+
+            compute_process_pids,
             processes,
         }
     }
@@ -119,6 +128,7 @@ struct Machine {
     cuda_version: String,
     driver_version: String,
     gpus: Vec<GPUStats>,
+    gpu_compute_process_pids: Vec<u32>,
 }
 
 impl Machine {
@@ -140,11 +150,16 @@ impl Machine {
             let gpu = GPUStats::from_nvml_device(device);
             gpus.push(gpu);
         }
+        let gpu_compute_process_pids = gpus
+            .iter()
+            .flat_map(|gpu| gpu.compute_process_pids.clone())
+            .collect::<Vec<u32>>();
 
         Self {
             cuda_version,
             driver_version,
             gpus,
+            gpu_compute_process_pids,
         }
     }
 
