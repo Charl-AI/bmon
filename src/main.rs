@@ -164,8 +164,8 @@ impl Machine {
     }
 
     fn display_gpu_stats(&self, verbose: bool) {
-        print!(
-            "CUDA Version {} | Driver Version {} \n",
+        println!(
+            "CUDA Version {} | Driver Version {}",
             self.cuda_version, self.driver_version
         );
         let mut table = Table::new(&self.gpus);
