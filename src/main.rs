@@ -69,12 +69,16 @@ impl GPUStats {
         let throttling = "N/A".to_string();
 
         let n_fans = device.num_fans().unwrap();
-        // fans reports average speed of all fans
-        let mut sum_fans = 0;
-        for i in 0..n_fans {
-            sum_fans += device.fan_speed(i).unwrap();
-        }
-        let fan = format!("{}%", sum_fans / n_fans);
+        let fan = if n_fans == 0 {
+            "N/A".to_string()
+        } else {
+            // fans reports average speed of all fans
+            let mut sum_fans = 0;
+            for i in 0..n_fans {
+                sum_fans += device.fan_speed(i).unwrap();
+            }
+            format!("{}%", sum_fans / n_fans)
+        };
 
         let display_connected = device.is_display_connected().unwrap();
         let display_active = device.is_display_active().unwrap();
@@ -166,6 +170,6 @@ impl Machine {
 
 fn main() {
     let machine = Machine::new();
-    let verbose = false;
+    let verbose = true;
     machine.display_gpu_stats(verbose);
 }
