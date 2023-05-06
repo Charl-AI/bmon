@@ -2,8 +2,12 @@ use clap::Parser;
 use nvml_wrapper::{
     bitmasks::device::ThrottleReasons, enum_wrappers::device::TemperatureSensor, Device, Nvml,
 };
+use std::process::Command;
 use tabled::{
-    settings::locator::ByColumnName, settings::object::Rows, settings::Disable, Table, Tabled,
+    settings::locator::ByColumnName,
+    settings::object::Rows,
+    settings::{Disable, Modify, Width},
+    Table, Tabled,
 };
 
 #[derive(Tabled)]
@@ -118,11 +122,62 @@ impl GPUStats {
     }
 }
 
+#[derive(Tabled)]
+#[tabled(rename_all = "UPPERCASE")]
+struct ProcessStats {
+    pid: u32,
+    user: String,
+    utilizations: String,
+    elapsed: String,
+    command: String,
+}
+
+impl ProcessStats {
+    fn from_pid(pid: u32) -> Self {
+        let ps = Command::new("ps")
+            .arg("-p")
+            .arg(pid.to_string())
+            .arg("-o")
+            .arg("pid=,user=,%cpu=,%mem=,etime=,command=")
+            .output()
+            .expect("failed to execute ps command");
+
+        let ps_output = String::from_utf8(ps.stdout).unwrap();
+
+        let user = ps_output.split_whitespace().nth(1).unwrap().to_string();
+        let cpu_utilization = ps_output.split_whitespace().nth(2).unwrap().to_string();
+        let memory_utilization = ps_output.split_whitespace().nth(3).unwrap().to_string();
+
+        let utilizations = format!("CPU {}% MEM {}%", cpu_utilization, memory_utilization);
+
+        let elapsed = ps_output.split_whitespace().nth(4).unwrap().to_string();
+        // command is everything from the 5th word onwards
+        let mut command = String::new();
+        for (i, word) in ps_output.split_whitespace().enumerate() {
+            if i < 5 {
+                continue;
+            }
+            command.push_str(word);
+            command.push(' ');
+        }
+
+        Self {
+            pid,
+            user,
+            utilizations,
+            elapsed,
+            command,
+        }
+    }
+}
+
 struct Machine {
     cuda_version: String,
     driver_version: String,
     gpus: Vec<GPUStats>,
-    gpu_compute_process_pids: Vec<u32>,
+    processes: Vec<ProcessStats>,
+    num_cpus: String,
+    ram_capacity: String,
 }
 
 impl Machine {
@@ -144,20 +199,43 @@ impl Machine {
             let gpu = GPUStats::from_nvml_device(device);
             gpus.push(gpu);
         }
-        let gpu_compute_process_pids = gpus
+        let gpu_process_pids = gpus
             .iter()
             .flat_map(|gpu| gpu.compute_process_pids.clone())
             .collect::<Vec<u32>>();
+
+        let processes = gpu_process_pids
+            .iter()
+            .map(|pid| ProcessStats::from_pid(*pid))
+            .collect::<Vec<ProcessStats>>();
+
+        let nproc = Command::new("nproc")
+            .output()
+            .expect("failed to execute nproc command");
+        let num_cpus = String::from_utf8(nproc.stdout)
+            .unwrap()
+            .strip_suffix('\n')
+            .unwrap()
+            .to_string();
+
+        let free = Command::new("free")
+            .arg("-h")
+            .output()
+            .expect("failed to execute free command");
+        let free_output = String::from_utf8(free.stdout).unwrap();
+        let ram_capacity = free_output.split_whitespace().nth(7).unwrap().to_string();
 
         Self {
             cuda_version,
             driver_version,
             gpus,
-            gpu_compute_process_pids,
+            processes,
+            num_cpus,
+            ram_capacity,
         }
     }
 
-    fn display_gpu_stats(&self, verbose: bool, diagnosis: bool) {
+    fn display_gpu_stats(&self, verbose: bool) {
         println!(
             "CUDA Version {} | Driver Version {}",
             self.cuda_version, self.driver_version
@@ -174,7 +252,7 @@ impl Machine {
         }
         println!("{}", table);
 
-        if !diagnosis {
+        if !verbose {
             return;
         }
 
@@ -187,17 +265,27 @@ impl Machine {
             print!("\x1b[0m"); // reset color
         }
     }
+
+    fn display_cpu_stats(&self, verbose: bool) {
+        println!(
+            " Num CPUs {} | RAM Capacity {}",
+            self.num_cpus, self.ram_capacity
+        );
+        let mut table = Table::new(&self.processes);
+        table.with(Modify::new(Rows::new(0..)).with(Width::truncate(50).suffix("...")));
+        if !verbose {
+            table.with(Disable::row(Rows::first()));
+        }
+        println!("{}", table);
+    }
 }
 
 #[derive(Parser)]
 struct Args {
-    /// Whether to display extra information
+    /// Whether to display extra information, including
+    /// bottleneck diagnosis information
     #[arg(short, long, default_value = "false")]
     verbose: bool,
-
-    /// Whether to display bottleneck diagnosis information
-    #[arg(short, long, default_value = "true")]
-    diagnosis: bool,
 
     /// Whether to display GPU stats
     #[arg(short, long, default_value = "true")]
@@ -219,5 +307,6 @@ struct Args {
 fn main() {
     let args: Args = Args::parse();
     let machine = Machine::new();
-    machine.display_gpu_stats(args.verbose, args.diagnosis);
+    machine.display_gpu_stats(args.verbose);
+    machine.display_cpu_stats(args.verbose);
 }
