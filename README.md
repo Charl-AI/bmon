@@ -24,3 +24,14 @@ When I am prototyping and training deep learning models, I am constantly watchin
 
 bmon attempts to solve these problems by presenting a clean and simple way of monitoring resources. I am particularly interested in its potential to give researchers informed analysis about program performance.
 
+## Installation
+
+TODO
+
+## Usage 
+
+TODO
+
+## Contributing
+
+I would love some help with this project! I am mostly building this tool because I want to use it, but I would be even more happy if other people want to use it :) Suggestions, issues, and PRs are welcome.
