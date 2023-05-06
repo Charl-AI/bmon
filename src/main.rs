@@ -1,6 +1,7 @@
-use nvml_wrapper::{bitmasks::device::ThrottleReasons, Device, Nvml};
-
-use nvml_wrapper::enum_wrappers::device::TemperatureSensor;
+use clap::Parser;
+use nvml_wrapper::{
+    bitmasks::device::ThrottleReasons, enum_wrappers::device::TemperatureSensor, Device, Nvml,
+};
 use tabled::{
     settings::locator::ByColumnName, settings::object::Rows, settings::Disable, Table, Tabled,
 };
@@ -156,7 +157,7 @@ impl Machine {
         }
     }
 
-    fn display_gpu_stats(&self, verbose: bool) {
+    fn display_gpu_stats(&self, verbose: bool, diagnosis: bool) {
         println!(
             "CUDA Version {} | Driver Version {}",
             self.cuda_version, self.driver_version
@@ -173,6 +174,10 @@ impl Machine {
         }
         println!("{}", table);
 
+        if !diagnosis {
+            return;
+        }
+
         for gpu in &self.gpus {
             if gpu.throttling.is_empty() {
                 continue;
@@ -184,8 +189,35 @@ impl Machine {
     }
 }
 
+#[derive(Parser)]
+struct Args {
+    /// Whether to display extra information
+    #[arg(short, long, default_value = "false")]
+    verbose: bool,
+
+    /// Whether to display bottleneck diagnosis information
+    #[arg(short, long, default_value = "true")]
+    diagnosis: bool,
+
+    /// Whether to display GPU stats
+    #[arg(short, long, default_value = "true")]
+    gpu: bool,
+
+    /// Whether to display CPU stats
+    #[arg(short, long, default_value = "false")]
+    cpu: bool,
+
+    /// Whether to display network stats
+    #[arg(short, long, default_value = "false")]
+    network: bool,
+
+    /// Whether to display disk stats
+    #[arg(short, long, default_value = "false")]
+    disk: bool,
+}
+
 fn main() {
+    let args: Args = Args::parse();
     let machine = Machine::new();
-    let verbose = true;
-    machine.display_gpu_stats(verbose);
+    machine.display_gpu_stats(args.verbose, args.diagnosis);
 }
