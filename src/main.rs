@@ -23,7 +23,6 @@ impl GPUStats {
 
         let power_usage = device.power_usage().unwrap();
         let power_limit = device.enforced_power_limit().unwrap();
-        // format power in W from mW
         let power = format!(
             "{:.0}W/{:.0}W",
             power_usage as f32 / 1000.0,
