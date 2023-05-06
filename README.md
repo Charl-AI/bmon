@@ -1,6 +1,6 @@
 # bmon -- The Bottleneck Monito{rs}
 
-bmon is a CLI tool for monitoring important system metrics in GPU-accelerated training and diagnosing potential bottlenecks.
+bmon is a CLI tool for monitoring system metrics and diagnosing potential bottlenecks in GPU-accelerated training.
 
 bmon has 5 features, which can be turned on/off mostly independently:
   - Display key GPU metrics (utilization, memory usage, temperature, power etc.)
