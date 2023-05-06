@@ -1,4 +1,4 @@
-use nvml_wrapper::{Device, Nvml};
+use nvml_wrapper::{bitmasks::device::ThrottleReasons, Device, Nvml};
 
 use nvml_wrapper::enum_wrappers::device::TemperatureSensor;
 use tabled::{
@@ -18,9 +18,11 @@ struct GPUStats {
     // these are not displayed unless verbose is true
     capability: String,
     cores: u32,
-    throttling: String,
     fan: String,
     display: String,
+
+    #[tabled(skip)]
+    throttling: ThrottleReasons,
 
     #[tabled(skip)]
     compute_process_pids: Vec<u32>,
@@ -59,17 +61,7 @@ impl GPUStats {
         let capability = format!("{}.{}", compute_cap.major, compute_cap.minor);
         let cores = device.num_cores().unwrap();
 
-        // let throttle_reasons = device.current_throttle_reasons().unwrap();
-        // let throttling = if throttle_reasons.is_empty() {
-        //     "None".to_string()
-        // } else {
-        //     throttle_reasons
-        //         .iter()
-        //         .map(|reason| format!("{:?}", reason))
-        //         .collect::<Vec<String>>()
-        //         .join(", ")
-        // };
-        let throttling = "N/A".to_string();
+        let throttling = device.current_throttle_reasons().unwrap();
 
         let n_fans = device.num_fans().unwrap();
         let fan = if n_fans == 0 {
@@ -114,9 +106,10 @@ impl GPUStats {
 
             capability,
             cores,
-            throttling,
             fan,
             display,
+
+            throttling,
 
             compute_process_pids,
             processes,
@@ -173,13 +166,21 @@ impl Machine {
             table
                 .with(Disable::column(ByColumnName::new("CAPABILITY")))
                 .with(Disable::column(ByColumnName::new("CORES")))
-                .with(Disable::column(ByColumnName::new("THROTTLING")))
                 .with(Disable::column(ByColumnName::new("FAN")))
                 .with(Disable::column(ByColumnName::new("DISPLAY")))
                 .with(Disable::column(ByColumnName::new("PROCESSES")))
                 .with(Disable::row(Rows::first()));
         }
         println!("{}", table);
+
+        for gpu in &self.gpus {
+            if gpu.throttling.is_empty() {
+                continue;
+            }
+            print!("\x1b[31m"); // make throttling reasons red
+            println!("GPU {} is throttling due to: {:?}", gpu.idx, gpu.throttling);
+            print!("\x1b[0m"); // reset color
+        }
     }
 }
 
