@@ -272,7 +272,9 @@ impl Machine {
             self.num_cpus, self.ram_capacity
         );
         let mut table = Table::new(&self.processes);
-        table.with(Modify::new(Rows::new(0..)).with(Width::truncate(50).suffix("...")));
+
+        let truncate_width = if verbose { 75 } else { 20 };
+        table.with(Modify::new(Rows::new(0..)).with(Width::truncate(truncate_width).suffix("...")));
         if !verbose {
             table.with(Disable::row(Rows::first()));
         }
