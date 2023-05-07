@@ -52,7 +52,7 @@ impl GPUStats {
 
         let gpu_utilization = device.utilization_rates().unwrap().gpu;
         let memory_utilization = device.utilization_rates().unwrap().memory;
-        let utilizations = format!("GPU {}% MEM {}%", gpu_utilization, memory_utilization);
+        let utilizations = format!("GPU {}% VRAM {}%", gpu_utilization, memory_utilization);
 
         let memory_used = device.memory_info().unwrap().used;
         let memory_total = device.memory_info().unwrap().total;
