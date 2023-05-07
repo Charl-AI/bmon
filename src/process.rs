@@ -49,3 +49,23 @@ impl ProcessStats {
         }
     }
 }
+
+pub fn get_cpu_stats() -> (String, String) {
+    let nproc = Command::new("nproc")
+        .output()
+        .expect("failed to execute nproc command");
+    let num_cpus = String::from_utf8(nproc.stdout)
+        .unwrap()
+        .strip_suffix('\n')
+        .unwrap()
+        .to_string();
+
+    let free = Command::new("free")
+        .arg("-h")
+        .output()
+        .expect("failed to execute free command");
+    let free_output = String::from_utf8(free.stdout).unwrap();
+    let ram_capacity = free_output.split_whitespace().nth(7).unwrap().to_string();
+
+    (num_cpus, ram_capacity)
+}

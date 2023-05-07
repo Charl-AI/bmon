@@ -1,6 +1,5 @@
 use clap::Parser;
 use nvml_wrapper::Nvml;
-use std::process::Command;
 use tabled::{
     settings::locator::ByColumnName,
     settings::object::Rows,
@@ -11,7 +10,7 @@ use tabled::{
 mod gpu;
 mod process;
 use gpu::{get_driver_stats, GPUStats};
-use process::ProcessStats;
+use process::{get_cpu_stats, ProcessStats};
 
 struct Machine {
     cuda_version: String,
@@ -45,21 +44,7 @@ impl Machine {
             .map(|pid| ProcessStats::from_pid(*pid))
             .collect::<Vec<ProcessStats>>();
 
-        let nproc = Command::new("nproc")
-            .output()
-            .expect("failed to execute nproc command");
-        let num_cpus = String::from_utf8(nproc.stdout)
-            .unwrap()
-            .strip_suffix('\n')
-            .unwrap()
-            .to_string();
-
-        let free = Command::new("free")
-            .arg("-h")
-            .output()
-            .expect("failed to execute free command");
-        let free_output = String::from_utf8(free.stdout).unwrap();
-        let ram_capacity = free_output.split_whitespace().nth(7).unwrap().to_string();
+        let (num_cpus, ram_capacity) = get_cpu_stats();
 
         Self {
             cuda_version,
