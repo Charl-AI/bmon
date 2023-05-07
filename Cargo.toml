@@ -3,6 +3,7 @@ name = "bmon"
 authors = ["C Jones"]
 version = "0.1.0"
 edition = "2021"
+description = "A CLI tool for monitoring system metrics and diagnosing bottlenecks in GPU-accelerated applications."
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
