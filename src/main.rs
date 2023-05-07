@@ -3,7 +3,7 @@ use nvml_wrapper::Nvml;
 use tabled::{
     settings::locator::ByColumnName,
     settings::object::Rows,
-    settings::{Disable, Modify, Width},
+    settings::{Disable, Modify, Style, Width},
     Table,
 };
 
@@ -71,6 +71,7 @@ impl Machine {
                 .with(Disable::column(ByColumnName::new("PROCESSES")))
                 .with(Disable::row(Rows::first()));
         }
+        table.with(Style::modern());
         println!("{}", table);
 
         if !verbose {
