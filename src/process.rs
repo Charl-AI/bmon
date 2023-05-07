@@ -2,7 +2,7 @@ use std::process::Command;
 use tabled::Tabled;
 
 #[derive(Tabled)]
-#[tabled(rename_all = "UPPERCASE")]
+#[tabled(rename_all = "PascalCase")]
 pub struct ProcessStats {
     pid: u32,
     user: String,

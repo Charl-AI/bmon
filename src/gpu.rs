@@ -4,7 +4,7 @@ use nvml_wrapper::{
 use tabled::Tabled;
 
 #[derive(Tabled)]
-#[tabled(rename_all = "UPPERCASE")]
+#[tabled(rename_all = "PascalCase")]
 pub struct GPUStats {
     pub idx: u32,
 

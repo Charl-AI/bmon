@@ -64,11 +64,11 @@ impl Machine {
         let mut table = Table::new(&self.gpus);
         if !verbose {
             table
-                .with(Disable::column(ByColumnName::new("CAPABILITY")))
-                .with(Disable::column(ByColumnName::new("CORES")))
-                .with(Disable::column(ByColumnName::new("FAN")))
-                .with(Disable::column(ByColumnName::new("DISPLAY")))
-                .with(Disable::column(ByColumnName::new("PROCESSES")))
+                .with(Disable::column(ByColumnName::new("Capability")))
+                .with(Disable::column(ByColumnName::new("Cores")))
+                .with(Disable::column(ByColumnName::new("Fan")))
+                .with(Disable::column(ByColumnName::new("Display")))
+                .with(Disable::column(ByColumnName::new("Processes")))
                 .with(Disable::row(Rows::first()));
         }
         table.with(Style::modern());
