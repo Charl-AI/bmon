@@ -1,5 +1,5 @@
 use nvml_wrapper::{
-    bitmasks::device::ThrottleReasons, enum_wrappers::device::TemperatureSensor, Device,
+    bitmasks::device::ThrottleReasons, enum_wrappers::device::TemperatureSensor, Device, Nvml,
 };
 use tabled::Tabled;
 
@@ -115,4 +115,15 @@ impl GPUStats {
             processes,
         }
     }
+}
+
+pub fn get_driver_stats(nvml: &Nvml) -> (String, String) {
+    // NB: cuda version begins as an int e.g. 12000
+    // this is converted to a float e.g. 12.0
+    let cuda_version = nvml.sys_cuda_driver_version().unwrap();
+    let cuda_version = cuda_version as f32 / 1000.0;
+    let cuda_version = format!("{:.1}", cuda_version);
+    let driver_version = nvml.sys_driver_version().unwrap();
+
+    (cuda_version, driver_version)
 }

@@ -10,7 +10,7 @@ use tabled::{
 
 mod gpu;
 mod process;
-use gpu::GPUStats;
+use gpu::{get_driver_stats, GPUStats};
 use process::ProcessStats;
 
 struct Machine {
@@ -26,13 +26,7 @@ impl Machine {
     fn new() -> Self {
         let nvml = Nvml::init().unwrap();
 
-        // NB: cuda version begins as an int e.g. 12000
-        // this is converted to a float e.g. 12.0
-        let cuda_version = nvml.sys_cuda_driver_version().unwrap();
-        let cuda_version = cuda_version as f32 / 1000.0;
-        let cuda_version = format!("{:.1}", cuda_version);
-
-        let driver_version = nvml.sys_driver_version().unwrap();
+        let (cuda_version, driver_version) = get_driver_stats(&nvml);
 
         let mut gpus: Vec<GPUStats> = vec![];
         let num_gpus = nvml.device_count().unwrap();
