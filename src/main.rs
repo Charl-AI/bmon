@@ -148,7 +148,7 @@ impl ProcessStats {
         let cpu_utilization = ps_output.split_whitespace().nth(2).unwrap().to_string();
         let memory_utilization = ps_output.split_whitespace().nth(3).unwrap().to_string();
 
-        let utilizations = format!("CPU {}% MEM {}%", cpu_utilization, memory_utilization);
+        let utilizations = format!("CPU {}% RAM {}%", cpu_utilization, memory_utilization);
 
         let elapsed = ps_output.split_whitespace().nth(4).unwrap().to_string();
         // command is everything from the 5th word onwards
