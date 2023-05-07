@@ -67,19 +67,6 @@ impl Machine {
         }
         table.with(Style::re_structured_text());
         println!("{}", table);
-
-        if !verbose {
-            return;
-        }
-
-        for gpu in &self.gpus {
-            if gpu.throttling.is_empty() {
-                continue;
-            }
-            print!("\x1b[31m"); // make throttling reasons red
-            println!("GPU {} is throttling due to: {:?}", gpu.idx, gpu.throttling);
-            print!("\x1b[0m"); // reset color
-        }
     }
 
     fn display_cpu_stats(&self, verbose: bool) {
@@ -102,35 +89,71 @@ impl Machine {
         }
         println!("{}", table);
     }
+
+    fn display_bottleneck_diagnostics(&self) {
+        print!("\x1b[31m"); // make throttling reasons red
+        println!("Bottleneck diagnosis:");
+        for gpu in &self.gpus {
+            if gpu.throttling.is_empty() {
+                continue;
+            }
+            println!("GPU {} is throttling due to: {:?}", gpu.idx, gpu.throttling);
+        }
+        print!("\x1b[0m"); // reset color
+    }
 }
 
+const PKG_AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
+const PKG_DESC: &str = env!("CARGO_PKG_DESCRIPTION");
+const PKG_VERSION: &str = env!("CARGO_PKG_VERSION");
+
 #[derive(Parser)]
+#[command(author=PKG_AUTHORS, version=PKG_VERSION, about=PKG_DESC)]
 struct Args {
-    /// Whether to display extra information, including
-    /// bottleneck diagnosis information
+    /// Displays all possible stats, equivalent to -bcdnv
     #[arg(short, long, default_value = "false")]
-    verbose: bool,
+    all: bool,
 
-    /// Whether to display GPU stats
-    #[arg(short, long, default_value = "true")]
-    gpu: bool,
+    /// Whether to display bottleneck diagnosis. Defaults to false.
+    #[arg(short, long, default_value = "false")]
+    bottleneck: bool,
 
-    /// Whether to display CPU stats
+    /// Whether to display CPU stats. Defaults to false.
     #[arg(short, long, default_value = "false")]
     cpu: bool,
 
-    /// Whether to display network stats
+    /// Whether to display disk stats. Defaults to false.
+    #[arg(short, long, default_value = "false")]
+    disk: bool,
+
+    /// Whether to display network stats. Defaults to false.
     #[arg(short, long, default_value = "false")]
     network: bool,
 
-    /// Whether to display disk stats
+    /// Whether to display extra information. Defaults to false.
     #[arg(short, long, default_value = "false")]
-    disk: bool,
+    verbose: bool,
 }
 
 fn main() {
     let args: Args = Args::parse();
     let machine = Machine::new();
+
     machine.display_gpu_stats(args.verbose);
-    machine.display_cpu_stats(args.verbose);
+
+    if args.disk || args.all {
+        unimplemented!("Disk stats not implemented yet");
+    }
+
+    if args.network || args.all {
+        unimplemented!("Network stats not implemented yet");
+    }
+
+    if args.cpu || args.all {
+        machine.display_cpu_stats(args.verbose);
+    }
+
+    if args.bottleneck || args.all {
+        machine.display_bottleneck_diagnostics();
+    }
 }
