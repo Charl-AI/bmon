@@ -268,9 +268,15 @@ impl Machine {
 
     fn display_cpu_stats(&self, verbose: bool) {
         println!(
-            " Num CPUs {} | RAM Capacity {}",
+            "Num CPUs {} | RAM Capacity {}",
             self.num_cpus, self.ram_capacity
         );
+        // check if there are any processes running on the GPU
+        if self.processes.is_empty() {
+            println!("No compute processes running on GPU");
+            return;
+        }
+
         let mut table = Table::new(&self.processes);
 
         let truncate_width = if verbose { 75 } else { 20 };
