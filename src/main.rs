@@ -1,9 +1,8 @@
 use clap::Parser;
 use nvml_wrapper::Nvml;
 use tabled::{
-    settings::locator::ByColumnName,
     settings::object::Rows,
-    settings::{Disable, Modify, Style, Width},
+    settings::{Disable, Extract, Modify, Style, Width},
     Table,
 };
 
@@ -36,7 +35,7 @@ impl Machine {
         }
         let gpu_process_pids = gpus
             .iter()
-            .flat_map(|gpu| gpu.process_pids.clone())
+            .flat_map(|gpu| gpu.processes.clone())
             .collect::<Vec<u32>>();
 
         let processes = gpu_process_pids
@@ -63,15 +62,10 @@ impl Machine {
         );
         let mut table = Table::new(&self.gpus);
         if !verbose {
-            table
-                .with(Disable::column(ByColumnName::new("Capability")))
-                .with(Disable::column(ByColumnName::new("Cores")))
-                .with(Disable::column(ByColumnName::new("Fan")))
-                .with(Disable::column(ByColumnName::new("Display")))
-                .with(Disable::column(ByColumnName::new("Processes")))
-                .with(Disable::row(Rows::first()));
+            // only display the first 6 columns in non-verbose mode
+            table.with(Extract::segment(0.., 0..6));
         }
-        table.with(Style::modern());
+        table.with(Style::re_structured_text());
         println!("{}", table);
 
         if !verbose {

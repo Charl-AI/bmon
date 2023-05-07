@@ -7,26 +7,26 @@ use tabled::Tabled;
 #[tabled(rename_all = "PascalCase")]
 pub struct GPUStats {
     pub idx: u32,
-
     #[tabled(skip)]
     pub throttling: ThrottleReasons,
-
-    #[tabled(skip)]
-    pub process_pids: Vec<u32>,
-
     name: String,
-    temp: String,
-    power: String,
-    utilizations: String,
-    memory: String,
+    #[tabled(display_with("Self::display_temp", self))]
+    temp: u32,
+    #[tabled(display_with("Self::display_power", self))]
+    power: (u32, u32), // (usage, limit)
+    #[tabled(display_with("Self::display_utilizations", self))]
+    utilizations: (u32, u32), // (gpu, memory)
+    #[tabled(display_with("Self::display_memory", self))]
+    memory: (u64, u64), // (used, total) in bytes
 
     // these are not displayed unless verbose is true
-    capability: String,
+    #[tabled(display_with("Self::display_capability", self))]
+    capability: (i32, i32), // (major, minor)
     cores: u32,
     fan: String,
     display: String,
-
-    processes: String, // same as above but in a diasplayable format
+    #[tabled(display_with("Self::display_processes", self))]
+    pub processes: Vec<u32>,
 }
 
 impl GPUStats {
@@ -35,30 +35,21 @@ impl GPUStats {
         let name = device.name().unwrap();
 
         let temp = device.temperature(TemperatureSensor::Gpu).unwrap();
-        let temp = format!("{}°C", temp);
 
         let power_usage = device.power_usage().unwrap();
         let power_limit = device.enforced_power_limit().unwrap();
-        let power = format!(
-            "{:.0}W/{:.0}W",
-            power_usage as f32 / 1000.0,
-            power_limit as f32 / 1000.0
-        );
+        let power = (power_usage, power_limit);
 
         let gpu_utilization = device.utilization_rates().unwrap().gpu;
         let memory_utilization = device.utilization_rates().unwrap().memory;
-        let utilizations = format!("GPU {}% VRAM {}%", gpu_utilization, memory_utilization);
+        let utilizations = (gpu_utilization, memory_utilization);
 
         let memory_used = device.memory_info().unwrap().used;
         let memory_total = device.memory_info().unwrap().total;
-        let memory = format!(
-            "{:.2}GB/{:.2}GB",
-            memory_used as f32 / 1024.0 / 1024.0 / 1024.0,
-            memory_total as f32 / 1024.0 / 1024.0 / 1024.0
-        );
+        let memory = (memory_used, memory_total);
 
         let compute_cap = device.cuda_compute_capability().unwrap();
-        let capability = format!("{}.{}", compute_cap.major, compute_cap.minor);
+        let capability = (compute_cap.major, compute_cap.minor);
         let cores = device.num_cores().unwrap();
 
         let throttling = device.current_throttle_reasons().unwrap();
@@ -86,15 +77,10 @@ impl GPUStats {
         };
 
         let compute_processes = device.running_compute_processes().unwrap();
-        let process_pids = compute_processes
+        let processes = compute_processes
             .iter()
             .map(|process| process.pid)
             .collect::<Vec<u32>>();
-        let processes = compute_processes
-            .iter()
-            .map(|process| process.pid.clone().to_string())
-            .collect::<Vec<String>>()
-            .join(", ");
 
         Self {
             idx,
@@ -111,9 +97,48 @@ impl GPUStats {
 
             throttling,
 
-            process_pids,
             processes,
         }
+    }
+
+    fn display_processes(&self) -> String {
+        let processes = self.processes.clone();
+        processes
+            .iter()
+            .map(|pid| pid.to_string())
+            .collect::<Vec<String>>()
+            .join(", ")
+    }
+
+    fn display_temp(&self) -> String {
+        format!("{}°C", self.temp)
+    }
+
+    fn display_power(&self) -> String {
+        let (power_usage, power_limit) = self.power;
+        format!(
+            "{:.0}W/{:.0}W",
+            power_usage as f32 / 1000.0,
+            power_limit as f32 / 1000.0
+        )
+    }
+    fn display_utilizations(&self) -> String {
+        let (gpu_utilization, memory_utilization) = self.utilizations;
+        format!("GPU {}% VRAM {}%", gpu_utilization, memory_utilization)
+    }
+
+    fn display_memory(&self) -> String {
+        let (memory_used, memory_total) = self.memory;
+        format!(
+            "{:.2}GB/{:.2}GB",
+            memory_used as f32 / 1024.0 / 1024.0 / 1024.0,
+            memory_total as f32 / 1024.0 / 1024.0 / 1024.0
+        )
+    }
+
+    fn display_capability(&self) -> String {
+        let (major, minor) = self.capability;
+        format!("{}.{}", major, minor)
     }
 }
 
