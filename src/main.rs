@@ -6,8 +6,10 @@ use tabled::{
     Table,
 };
 
+mod disk;
 mod gpu;
 mod process;
+use disk::get_io_stats;
 use gpu::{get_driver_stats, GPUStats};
 use process::{get_cpu_stats, ProcessStats};
 
@@ -90,7 +92,6 @@ impl Machine {
     }
 
     fn display_bottleneck_diagnostics(&self) {
-        print!("\x1b[31m"); // make throttling reasons red
         println!("\nBottleneck diagnosis:");
         for gpu in &self.gpus {
             if gpu.throttling.is_empty() {
@@ -98,7 +99,6 @@ impl Machine {
             }
             println!("GPU {} is throttling due to: {:?}", gpu.idx, gpu.throttling);
         }
-        print!("\x1b[0m"); // reset color
     }
 }
 
