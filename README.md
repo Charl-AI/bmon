@@ -13,6 +13,11 @@ With most features turned off, bmon may be used as a minimalist `nvidia-smi`. Wi
 
 > bmon is in the alpha stage of development. Until version 1.0, there may be bugs, missing features, and API changes between versions.
 
+TODO: 
+ - Improve table alignment and sizing
+ - Write bottleneck diagnosis document explaining how to use these metrics
+ - Add bottleneck diagnises from the document to the auto-detection
+
 ## Motivation
 
 Different labs often have very different compute setups and training pipelines optimized for one setup are likely to not be optimal for others. Defaults in libraries and other people's code are often poor -- to get the most out of our resources, we should all be tuning our training pipelines for our own setups.
