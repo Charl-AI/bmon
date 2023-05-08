@@ -1,7 +1,7 @@
 use clap::Parser;
 use nvml_wrapper::Nvml;
 use tabled::{
-    settings::object::Rows,
+    settings::object::{Columns, Rows},
     settings::{Extract, Modify, Panel, Style, Width},
     Table,
 };
@@ -71,8 +71,18 @@ impl Machine {
             // only display the first 6 columns in non-verbose mode
             table.with(Extract::segment(0.., 0..6));
         }
+
+        // set name width to be exactly 15 characters
+        // other columns have fixed width already
+        let name_col_width = { 15 };
+        table.with(
+            Modify::new(Columns::new(1..2))
+                .with(Width::truncate(name_col_width).suffix("..."))
+                .with(Width::increase(name_col_width)),
+        );
+
         table.with(Panel::header(format!(
-            "Driver Version: {}       CUDA Version: {}",
+            "Driver Version: {}  CUDA Version: {}",
             self.driver_version, self.cuda_version
         )));
 
@@ -90,6 +100,16 @@ impl Machine {
             "Num CPUs: {}  RAM Capacity: {}  IO Wait: {}  Steal: {}  Idle: {}",
             self.num_cpus, self.ram_capacity, self.iowait, self.steal, self.idle
         )));
+
+        // set fixed col widths (except for the first column)
+        let col_widths = vec![8, 20, 10, 22];
+        for (i, width) in col_widths.iter().enumerate() {
+            table.with(
+                Modify::new(Columns::new(i + 1..i + 2))
+                    .with(Width::truncate(*width).suffix("..."))
+                    .with(Width::increase(*width)),
+            );
+        }
 
         table.with(Style::re_structured_text());
         println!("\nCPU Usage:");
