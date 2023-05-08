@@ -13,10 +13,6 @@ With most features turned off, bmon may be used as a minimalist `nvidia-smi`. Wi
 
 > bmon is in the alpha stage of development. Until version 1.0, there may be bugs, missing features, and API changes between versions.
 
-TODO: 
- - Improve table alignment and sizing
- - Write bottleneck diagnosis document explaining how to use these metrics
- - Add bottleneck diagnises from the document to the auto-detection
 
 ## Motivation
 
@@ -33,9 +29,27 @@ bmon attempts to solve these problems by presenting a clean and simple way of mo
 
 TODO
 
-## Usage 
+## Typical Usage
 
-TODO
+Show options with `bmon -h`.
+
+Using as an nvidia-smi replacement: `bmon`
+
+With all features: `bmon --all`
+
+Tip: use  the linux `watch` command to refresh stats every n seconds (e.g. `watch -n 5 bmon`)
+
+## Roadmap
+
+Short term: 
+ - Add network and disk metrics
+ - Improve table alignment and sizing
+ - Write bottleneck diagnosis document explaining how to use the metrics to find problems in typical training pipelines
+ - Add bottleneck diagnoses from the document to the automatic bottneck inference feature
+
+Long term:
+ - Allow for outputs other than just printing (e.g. to csv/json/sqlite)
+ - Log metrics so we can diagnose bottlenecks with a time-component (currently bmon simply displays a snapshot each time it is called)
 
 ## Contributing
 
