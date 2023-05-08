@@ -101,7 +101,11 @@ impl Machine {
             self.num_cpus, self.ram_capacity, self.iowait, self.steal, self.idle
         )));
 
-        // set fixed col widths (except for the first column)
+        // set PID col to be min 7 characters
+        // we cannot set with the rest because the truncation messes up the header
+        table.with(Modify::new(Columns::new(0..1)).with(Width::increase(7)));
+
+        // set fixed col widths (except for the PID col)
         let col_widths = vec![8, 20, 10, 22];
         for (i, width) in col_widths.iter().enumerate() {
             table.with(
