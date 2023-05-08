@@ -7,26 +7,28 @@ use tabled::Tabled;
 #[tabled(rename_all = "PascalCase")]
 pub struct GPUStats {
     pub idx: u32,
-    #[tabled(skip)]
-    pub throttling: ThrottleReasons,
-    name: String,
+    #[tabled(display_with("Self::display_name", self))]
+    pub name: String,
     #[tabled(display_with("Self::display_temp", self))]
-    temp: u32,
+    pub temp: u32,
     #[tabled(display_with("Self::display_power", self))]
-    power: (u32, u32), // (usage, limit)
+    pub power: (u32, u32), // (usage, limit)
     #[tabled(display_with("Self::display_utilizations", self))]
-    utilizations: (u32, u32), // (gpu, memory)
+    pub utilizations: (u32, u32), // (gpu, memory)
     #[tabled(display_with("Self::display_memory", self))]
-    memory: (u64, u64), // (used, total) in bytes
+    pub memory: (u64, u64), // (used, total) in bytes
 
     // these are not displayed unless verbose is true
     #[tabled(display_with("Self::display_capability", self))]
-    capability: (i32, i32), // (major, minor)
-    cores: u32,
-    fan: String,
-    display: String,
+    pub capability: (i32, i32), // (major, minor)
+    pub cores: u32,
+    pub fan: String,
+    pub display: String,
     #[tabled(display_with("Self::display_processes", self))]
     pub processes: Vec<u32>,
+
+    #[tabled(skip)]
+    pub throttling: ThrottleReasons,
 }
 
 impl GPUStats {
@@ -63,7 +65,7 @@ impl GPUStats {
             for i in 0..n_fans {
                 sum_fans += device.fan_speed(i).unwrap();
             }
-            format!("{}%", sum_fans / n_fans)
+            format!("{:>3}%", sum_fans / n_fans)
         };
 
         let display_connected = device.is_display_connected().unwrap();
@@ -94,11 +96,24 @@ impl GPUStats {
             cores,
             fan,
             display,
+            processes,
 
             throttling,
-
-            processes,
         }
+    }
+
+    fn display_name(&self) -> String {
+        // IME, the names can be quite long but only the
+        // last two words are really useful
+        // e.g. "NVIDIA GeForce RTX 3090"
+        // so we only display the last two words
+
+        let mut words = self.name.split_whitespace().collect::<Vec<&str>>();
+        let len = words.len();
+        if len > 2 {
+            words.drain(0..len - 2);
+        }
+        words.join(" ")
     }
 
     fn display_processes(&self) -> String {
@@ -111,27 +126,31 @@ impl GPUStats {
     }
 
     fn display_temp(&self) -> String {
-        format!("{}°C", self.temp)
+        format!("{:>2}°C", self.temp)
     }
 
     fn display_power(&self) -> String {
         let (power_usage, power_limit) = self.power;
         format!(
-            "{:.0}W/{:.0}W",
-            power_usage as f32 / 1000.0,
-            power_limit as f32 / 1000.0
+            "{:>3}W/{:>3}W",
+            (power_usage as f32 / 1000.0).round(),
+            (power_limit as f32 / 1000.0).round()
         )
     }
     fn display_utilizations(&self) -> String {
         let (gpu_utilization, memory_utilization) = self.utilizations;
-        format!("GPU {}% VRAM {}%", gpu_utilization, memory_utilization)
+
+        format!(
+            "GPU {:>3}% VRAM {:>3}%",
+            gpu_utilization, memory_utilization
+        )
     }
 
     fn display_memory(&self) -> String {
         let (memory_used, memory_total) = self.memory;
         format!(
-            "{:.2}GB/{:.2}GB",
-            memory_used as f32 / 1024.0 / 1024.0 / 1024.0,
+            "{:>5}GB/{:.2}GB",
+            round_to_2dp(memory_used as f32 / 1024.0 / 1024.0 / 1024.0),
             memory_total as f32 / 1024.0 / 1024.0 / 1024.0
         )
     }
@@ -140,6 +159,10 @@ impl GPUStats {
         let (major, minor) = self.capability;
         format!("{}.{}", major, minor)
     }
+}
+
+fn round_to_2dp(num: f32) -> f32 {
+    (num * 100.0).round() / 100.0
 }
 
 pub fn get_driver_stats(nvml: &Nvml) -> (String, String) {
