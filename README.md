@@ -28,6 +28,8 @@ bmon attempts to solve these problems by presenting a clean and simple way of mo
 
 TODO
 
+bmon builds on existing command line tools for system monitoring. Requirements should be satisfied by most linux machines with working NVIDIA GPUs. In practice, you should be able to run the following commands without errors: `nvidia-smi`, `free`, `nproc`, `iostat`, `ps`.
+
 ## Typical Usage
 
 Show options with `bmon -h`.
