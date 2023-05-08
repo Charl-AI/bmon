@@ -1,8 +1,7 @@
 use clap::Parser;
 use nvml_wrapper::Nvml;
 use tabled::{
-    settings::object::Rows,
-    settings::{Disable, Extract, Modify, Style, Width},
+    settings::{Extract, Panel, Style},
     Table,
 };
 
@@ -56,43 +55,40 @@ impl Machine {
     }
 
     fn display_gpu_stats(&self, verbose: bool) {
-        println!(
-            "CUDA Version {} | Driver Version {}",
-            self.cuda_version, self.driver_version
-        );
         let mut table = Table::new(&self.gpus);
+
         if !verbose {
             // only display the first 6 columns in non-verbose mode
             table.with(Extract::segment(0.., 0..6));
         }
+        table.with(Panel::header(format!(
+            "Driver Version: {}       CUDA Version: {}",
+            self.driver_version, self.cuda_version
+        )));
+
         table.with(Style::re_structured_text());
+        println!("\nGPU Usage:");
         println!("{}", table);
     }
 
-    fn display_cpu_stats(&self, verbose: bool) {
-        println!(
-            "Num CPUs {} | RAM Capacity {}",
-            self.num_cpus, self.ram_capacity
-        );
-        // check if there are any processes running on the GPU
-        if self.processes.is_empty() {
-            println!("No compute processes running on GPU");
-            return;
-        }
+    fn display_cpu_stats(&self, _verbose: bool) {
+        let (iowait, steal, idle) = get_io_stats();
 
         let mut table = Table::new(&self.processes);
 
-        let truncate_width = if verbose { 75 } else { 20 };
-        table.with(Modify::new(Rows::new(0..)).with(Width::truncate(truncate_width).suffix("...")));
-        if !verbose {
-            table.with(Disable::row(Rows::first()));
-        }
+        table.with(Panel::header(format!(
+            "Num CPUs: {}  RAM Capacity: {}  IO Wait: {}  Steal: {}  Idle: {}",
+            self.num_cpus, self.ram_capacity, iowait, steal, idle
+        )));
+
+        table.with(Style::re_structured_text());
+        println!("\nCPU Usage:");
         println!("{}", table);
     }
 
     fn display_bottleneck_diagnostics(&self) {
         print!("\x1b[31m"); // make throttling reasons red
-        println!("Bottleneck diagnosis:");
+        println!("\nBottleneck diagnosis:");
         for gpu in &self.gpus {
             if gpu.throttling.is_empty() {
                 continue;
