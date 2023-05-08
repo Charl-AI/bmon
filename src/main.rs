@@ -138,7 +138,7 @@ const PKG_VERSION: &str = env!("CARGO_PKG_VERSION");
 #[derive(Parser)]
 #[command(author=PKG_AUTHORS, version=PKG_VERSION, about=PKG_DESC)]
 struct Args {
-    /// Displays all possible stats, equivalent to -bcdnv
+    /// Displays all possible stats, equivalent to -bc
     #[arg(short, long, default_value = "false")]
     all: bool,
 
@@ -150,14 +150,6 @@ struct Args {
     #[arg(short, long, default_value = "false")]
     cpu: bool,
 
-    /// Whether to display disk stats. Defaults to false.
-    #[arg(short, long, default_value = "false")]
-    disk: bool,
-
-    /// Whether to display network stats. Defaults to false.
-    #[arg(short, long, default_value = "false")]
-    network: bool,
-
     /// Whether to display extra information. Defaults to false.
     #[arg(short, long, default_value = "false")]
     verbose: bool,
@@ -168,14 +160,6 @@ fn main() {
     let machine = Machine::new();
 
     machine.display_gpu_stats(args.verbose);
-
-    if args.disk || args.all {
-        unimplemented!("Disk stats not implemented yet");
-    }
-
-    if args.network || args.all {
-        unimplemented!("Network stats not implemented yet");
-    }
 
     if args.cpu || args.all {
         machine.display_cpu_stats(args.verbose);
