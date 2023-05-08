@@ -1,7 +1,8 @@
 use clap::Parser;
 use nvml_wrapper::Nvml;
 use tabled::{
-    settings::{Extract, Panel, Style},
+    settings::object::Rows,
+    settings::{Extract, Modify, Panel, Style, Width},
     Table,
 };
 
@@ -71,10 +72,12 @@ impl Machine {
         println!("{}", table);
     }
 
-    fn display_cpu_stats(&self, _verbose: bool) {
+    fn display_cpu_stats(&self, verbose: bool) {
         let (iowait, steal, idle) = get_io_stats();
 
         let mut table = Table::new(&self.processes);
+        let truncate_width = if verbose { 75 } else { 20 };
+        table.with(Modify::new(Rows::new(0..)).with(Width::truncate(truncate_width).suffix("...")));
 
         table.with(Panel::header(format!(
             "Num CPUs: {}  RAM Capacity: {}  IO Wait: {}  Steal: {}  Idle: {}",
