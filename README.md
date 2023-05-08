@@ -2,11 +2,10 @@
 
 bmon is a CLI tool for monitoring system metrics and diagnosing potential bottlenecks in GPU-accelerated training.
 
-bmon has 5 features, which can be turned on/off mostly independently:
+bmon has 4 features, which can be turned on/off mostly independently:
   - Display key GPU metrics (utilization, memory usage, temperature, power etc.)
   - Display key CPU metrics for running GPU compute processes (CPU utilization, RAM etc.)
   - Display key disk metrics
-  - Display key network metrics
   - Infer potential problems and bottlenecks from metrics (e.g. suspected disk bottleneck, GPU thermal throttling etc.)
 
 With most features turned off, bmon may be used as a minimalist `nvidia-smi`. With all features enabled, it becomes your personal research assistant.
@@ -42,10 +41,10 @@ Tip: use  the linux `watch` command to refresh stats every n seconds (e.g. `watc
 ## Roadmap
 
 Short term: 
- - Add network and disk metrics
  - Improve table alignment and sizing
  - Write bottleneck diagnosis document explaining how to use the metrics to find problems in typical training pipelines
  - Add bottleneck diagnoses from the document to the automatic bottneck inference feature
+ - Find a way to monitor network metrics
 
 Long term:
  - Allow for outputs other than just printing (e.g. to csv/json/sqlite)
