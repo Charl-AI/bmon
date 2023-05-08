@@ -44,7 +44,6 @@ Tip: use  the linux `watch` command to refresh stats every n seconds (e.g. `watc
 
 Short term: 
  - add optional disk metrics monitoring from iostat output
- - Improve table alignment and sizing
  - Write bottleneck diagnosis document explaining how to use the metrics to find problems in typical training pipelines
  - Add bottleneck diagnoses from the document to the automatic bottneck inference feature
  - Find a way to monitor network metrics
