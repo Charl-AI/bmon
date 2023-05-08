@@ -67,6 +67,14 @@ impl Machine {
     fn display_gpu_stats(&self, verbose: bool) {
         let mut table = Table::new(&self.gpus);
 
+        // set process col width to be exactly 10 characters
+        let process_col_width = { 10 };
+        table.with(
+            Modify::new(Columns::new(10..11))
+                .with(Width::truncate(process_col_width).suffix("..."))
+                .with(Width::increase(process_col_width)),
+        );
+
         if !verbose {
             // only display the first 6 columns in non-verbose mode
             table.with(Extract::segment(0.., 0..6));
@@ -106,7 +114,11 @@ impl Machine {
         table.with(Modify::new(Columns::new(0..1)).with(Width::increase(7)));
 
         // set fixed col widths (except for the PID col)
-        let col_widths = vec![8, 20, 10, 22];
+        let col_widths = if !verbose {
+            vec![8, 20, 10, 22]
+        } else {
+            vec![8, 20, 10, 75]
+        };
         for (i, width) in col_widths.iter().enumerate() {
             table.with(
                 Modify::new(Columns::new(i + 1..i + 2))
