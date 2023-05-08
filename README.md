@@ -49,7 +49,7 @@ Short term:
 
 Long term:
  - Allow for outputs other than just printing (e.g. to csv/json/sqlite)
- - Log metrics so we can diagnose bottlenecks with a time-component (currently bmon simply displays a snapshot each time it is called)
+ - Log metrics so we can diagnose bottlenecks with a time-component (currently bmon simply displays a snapshot each time it is called and all the bottlneck diagnosis sees only the snapshot)
 
 ## Contributing
 
