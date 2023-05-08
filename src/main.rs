@@ -14,12 +14,15 @@ use gpu::{get_driver_stats, GPUStats};
 use process::{get_cpu_stats, ProcessStats};
 
 struct Machine {
-    cuda_version: String,
-    driver_version: String,
     gpus: Vec<GPUStats>,
     processes: Vec<ProcessStats>,
+    cuda_version: String,
+    driver_version: String,
     num_cpus: String,
     ram_capacity: String,
+    iowait: String,
+    steal: String,
+    idle: String,
 }
 
 impl Machine {
@@ -46,14 +49,18 @@ impl Machine {
             .collect::<Vec<ProcessStats>>();
 
         let (num_cpus, ram_capacity) = get_cpu_stats();
+        let (iowait, steal, idle) = get_io_stats();
 
         Self {
-            cuda_version,
-            driver_version,
             gpus,
             processes,
+            cuda_version,
+            driver_version,
             num_cpus,
             ram_capacity,
+            iowait,
+            steal,
+            idle,
         }
     }
 
@@ -75,15 +82,13 @@ impl Machine {
     }
 
     fn display_cpu_stats(&self, verbose: bool) {
-        let (iowait, steal, idle) = get_io_stats();
-
         let mut table = Table::new(&self.processes);
         let truncate_width = if verbose { 75 } else { 20 };
         table.with(Modify::new(Rows::new(0..)).with(Width::truncate(truncate_width).suffix("...")));
 
         table.with(Panel::header(format!(
             "Num CPUs: {}  RAM Capacity: {}  IO Wait: {}  Steal: {}  Idle: {}",
-            self.num_cpus, self.ram_capacity, iowait, steal, idle
+            self.num_cpus, self.ram_capacity, self.iowait, self.steal, self.idle
         )));
 
         table.with(Style::re_structured_text());
