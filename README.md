@@ -26,9 +26,19 @@ bmon attempts to solve these problems by presenting a clean and simple way of mo
 
 ## Installation
 
-TODO
+The binaries for each version are uploaded to GitHub as 'releases', which can be viewed in the UI. Simply download the latest one and move to a location in your `$PATH`.
 
-bmon builds on existing command line tools for system monitoring. Requirements should be satisfied by most linux machines with working NVIDIA GPUs. In practice, you should be able to run the following commands without errors: `nvidia-smi`, `free`, `nproc`, `iostat`, `ps`.
+```bash
+wget https://github.com/Charl-AI/bmon/releases/download/<VERSION>/bmon
+chmod +x ./bmon
+mv ./bmon <YOUR_PREFERRED_DIR_IN_$PATH>
+```
+
+You may also build from source by cloning this repo and running `cargo build --release`.
+
+### Requirements
+
+bmon builds on existing command line tools for system monitoring. Most linux machines with working NVIDIA GPUs should satisfy the requirements already. In practice, you'll be fine if you can run the following commands without errors: `nvidia-smi`, `free`, `nproc`, `iostat`, `ps`.
 
 ## Typical Usage
 
