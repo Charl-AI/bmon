@@ -12,6 +12,14 @@ With most features turned off, bmon may be used as a minimalist `nvidia-smi`. Wi
 
 > bmon is in the alpha stage of development. Until version 1.0, there may be bugs, missing features, and API changes between versions.
 
+## Examples
+
+![alt-text](assets/bmon_3.png)
+
+<p float="left">
+  <img src="assets/bmon_1.png" width="400" />
+  <img src="assets/bmon_2.png" width="400" /> 
+</p>
 
 ## Motivation
 
